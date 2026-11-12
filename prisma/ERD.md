@@ -11,13 +11,24 @@ erDiagram
 "Image" {
   String id PK
   String url
+  String storeId FK "nullable"
 }
 "Language" {
   String id PK
   String name UK
 }
+"SystemText" {
+  String id PK
+  String text
+}
+"SystemTextLangMap" {
+  String id PK
+  String text
+  String systemTextId FK
+  String langId FK
+}
 "Store" {
-  Int id PK
+  String id PK
   String name
   String description
   String imgId FK "nullable"
@@ -28,13 +39,14 @@ erDiagram
   String id PK
   String name
   String description
-  Int storeId FK
+  String storeId FK
   String langId FK
 }
 "ProductGroup" {
   String id PK
   String name
   Boolean showTop
+  String storeId FK
   String imgId FK "nullable"
 }
 "ProductGroupLangMap" {
@@ -46,6 +58,7 @@ erDiagram
 "Product" {
   String id PK
   String groupId FK
+  String storeId FK
   String name
   String description
   Int price
@@ -76,6 +89,7 @@ erDiagram
   String id PK
   Int count
   String userId FK
+  String storeId FK
   String productId FK
   String orderId FK "nullable"
 }
@@ -87,6 +101,7 @@ erDiagram
   Int index
   DateTime requestedAt
   String userId FK
+  String storeId FK
 }
 "User" {
   String id PK
@@ -100,33 +115,39 @@ erDiagram
   String subscribe_hash "nullable"
   String langId FK "nullable"
 }
-"Message" {
+"Staff" {
   String id PK
-  String title
-  String body
-  String url "nullable"
-  String label "nullable"
-  String productId FK "nullable"
-  String orderId FK "nullable"
+  String storeId FK
+  String userId FK
+  Boolean isOwner
 }
-"MessageLangMap" {
+"MessageTemplate" {
+  String id PK
+  String storeId FK "nullable"
+  String title
+  String body
+}
+"MessageTemplateLangMap" {
   String id PK
   String title
   String body
-  String messageId FK
+  String messageTemplateId FK
   String langId FK
 }
-"UserMessage" {
+"Message" {
   String id PK
-  Boolean isRead
-  String userId FK
-  String messageId FK
+  String messageTemplateId FK
+  String url "nullable"
+  String label "nullable"
   DateTime createdAt
+  String productId FK "nullable"
+  String orderId FK "nullable"
+  String userId FK "nullable"
 }
-"GlobalMessage" {
+"UserMessageFlag" {
   String id PK
-  String messageId FK
-  DateTime createdAt
+  String messageId FK,UK
+  Boolean isRead
 }
 "Tutorial" {
   String id PK
@@ -165,15 +186,24 @@ erDiagram
   DateTime expiresAt
   DateTime createdAt
 }
+"_ImageToStore" {
+  String A FK
+  String B FK
+}
+"Image" }o--o| "Store" : store
+"SystemTextLangMap" }o--|| "SystemText" : systemText
+"SystemTextLangMap" }o--|| "Language" : lang
 "Store" }o--o| "Image" : img
 "Store" }o--o| "Message" : readyMessage
 "Store" }o--o| "Tutorial" : tutorial
 "StoreLangMap" }o--|| "Store" : store
 "StoreLangMap" }o--|| "Language" : lang
+"ProductGroup" }o--|| "Store" : store
 "ProductGroup" }o--o| "Image" : img
 "ProductGroupLangMap" }o--|| "ProductGroup" : productGroup
 "ProductGroupLangMap" }o--|| "Language" : lang
 "Product" }o--|| "ProductGroup" : group
+"Product" }o--|| "Store" : store
 "Product" }o--o| "Image" : img
 "Product" }o--o| "Label" : label
 "ProductLangMap" }o--|| "Product" : product
@@ -181,22 +211,29 @@ erDiagram
 "LabelLangMap" }o--|| "Label" : label
 "LabelLangMap" }o--|| "Language" : lang
 "CartItem" }o--|| "User" : user
+"CartItem" }o--|| "Store" : store
 "CartItem" }o--|| "Product" : product
 "CartItem" }o--o| "Order" : order
 "Order" }o--|| "User" : user
+"Order" }o--|| "Store" : store
 "User" }o--o| "Language" : lang
+"Staff" }o--|| "Store" : store
+"Staff" }o--|| "User" : user
+"MessageTemplate" }o--o| "Store" : store
+"MessageTemplateLangMap" }o--|| "MessageTemplate" : messageTemplate
+"MessageTemplateLangMap" }o--|| "Language" : lang
+"Message" }o--|| "MessageTemplate" : messageTemplate
 "Message" }o--o| "Product" : product
 "Message" }o--o| "Order" : order
-"MessageLangMap" }o--|| "Message" : message
-"MessageLangMap" }o--|| "Language" : lang
-"UserMessage" }o--|| "User" : user
-"UserMessage" }o--|| "Message" : message
-"GlobalMessage" }o--|| "Message" : message
+"Message" }o--o| "User" : user
+"UserMessageFlag" |o--|| "Message" : message
 "TutorialPage" }o--o| "Image" : img
 "TutorialPage" }o--|| "Tutorial" : tutorial
 "TutorialPageLangMap" }o--|| "TutorialPage" : tutorialPage
 "TutorialPageLangMap" }o--|| "Language" : lang
 "UserVerifyKey" |o--|| "User" : user
+"_ImageToStore" }o--|| "Image" : Image
+"_ImageToStore" }o--|| "Store" : Store
 ```
 
 ### `Image`
@@ -205,6 +242,7 @@ Properties as follows:
 
 - `id`:
 - `url`:
+- `storeId`:
 
 ### `Language`
 
@@ -212,6 +250,22 @@ Properties as follows:
 
 - `id`:
 - `name`:
+
+### `SystemText`
+
+Properties as follows:
+
+- `id`:
+- `text`:
+
+### `SystemTextLangMap`
+
+Properties as follows:
+
+- `id`:
+- `text`:
+- `systemTextId`:
+- `langId`:
 
 ### `Store`
 
@@ -241,6 +295,7 @@ Properties as follows:
 - `id`:
 - `name`:
 - `showTop`:
+- `storeId`:
 - `imgId`:
 
 ### `ProductGroupLangMap`
@@ -258,6 +313,7 @@ Properties as follows:
 
 - `id`:
 - `groupId`:
+- `storeId`:
 - `name`:
 - `description`:
 - `price`:
@@ -300,6 +356,7 @@ Properties as follows:
 - `id`:
 - `count`:
 - `userId`:
+- `storeId`:
 - `productId`:
 - `orderId`:
 
@@ -314,6 +371,7 @@ Properties as follows:
 - `index`:
 - `requestedAt`:
 - `userId`:
+- `storeId`:
 
 ### `User`
 
@@ -330,45 +388,54 @@ Properties as follows:
 - `subscribe_hash`:
 - `langId`:
 
+### `Staff`
+
+Properties as follows:
+
+- `id`:
+- `storeId`:
+- `userId`:
+- `isOwner`:
+
+### `MessageTemplate`
+
+Properties as follows:
+
+- `id`:
+- `storeId`:
+- `title`:
+- `body`:
+
+### `MessageTemplateLangMap`
+
+Properties as follows:
+
+- `id`:
+- `title`:
+- `body`:
+- `messageTemplateId`:
+- `langId`:
+
 ### `Message`
 
 Properties as follows:
 
 - `id`:
-- `title`:
-- `body`:
+- `messageTemplateId`:
 - `url`:
 - `label`:
+- `createdAt`:
 - `productId`:
 - `orderId`:
-
-### `MessageLangMap`
-
-Properties as follows:
-
-- `id`:
-- `title`:
-- `body`:
-- `messageId`:
-- `langId`:
-
-### `UserMessage`
-
-Properties as follows:
-
-- `id`:
-- `isRead`:
 - `userId`:
-- `messageId`:
-- `createdAt`:
 
-### `GlobalMessage`
+### `UserMessageFlag`
 
 Properties as follows:
 
 - `id`:
 - `messageId`:
-- `createdAt`:
+- `isRead`:
 
 ### `Tutorial`
 
@@ -424,3 +491,12 @@ Properties as follows:
 - `name`:
 - `expiresAt`:
 - `createdAt`:
+
+### `_ImageToStore`
+
+Pair relationship table between [Image](#Image) and [Store](#Store)
+
+Properties as follows:
+
+- `A`:
+- `B`:

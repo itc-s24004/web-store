@@ -34,6 +34,9 @@ model Image {
 
   url           String
 
+  storeId       String?
+  store         Store?  @relation("images", fields: [storeId], references: [id], onDelete: Cascade)
+
   stores        Store[]
   productGroups ProductGroup[]
   products      Product[]
@@ -42,19 +45,40 @@ model Image {
 
 
 model Language {
-  id              String                @id @default(ulid())
+  id                  String                @id @default(ulid())
 
-  name            String                @unique
+  name                String                @unique
 
+  systemTextLangMaps  SystemTextLangMap[]
+  users               User[]
   
-  users           User[]
-  
-  storeLM         StoreLangMap[]
-  productGroupLM  ProductGroupLangMap[]
-  productLM       ProductLangMap[]
-  labelLM         LabelLangMap[]
-  messageLM       MessageLangMap[]
-  tutorialPageLM  TutorialPageLangMap[]
+  storeLM             StoreLangMap[]
+  productGroupLM      ProductGroupLangMap[]
+  productLM           ProductLangMap[]
+  labelLM             LabelLangMap[]
+  tutorialPageLM      TutorialPageLangMap[]
+  messageTemplateLM   MessageTemplateLangMap[]
+}
+
+
+
+model SystemText {
+  id        String  @id @default(ulid())
+
+  text      String
+  langMaps  SystemTextLangMap[]
+}
+
+model SystemTextLangMap {
+  id            String    @id @default(ulid())
+
+  text          String
+
+  systemTextId  String
+  systemText    SystemText @relation(fields: [systemTextId], references: [id], onDelete: Cascade)
+
+  langId        String
+  lang          Language   @relation(fields: [langId], references: [id], onDelete: Cascade)
 }
 
 
@@ -62,10 +86,8 @@ model Language {
 
 
 
-
-
 model Store {
-  id              Int       @id @default(autoincrement())
+  id              String       @id @default(ulid())
 
   name            String
   description     String
@@ -80,6 +102,15 @@ model Store {
   tutorial        Tutorial? @relation(fields: [tutorialId], references: [id], onDelete: SetNull)
 
   langMaps        StoreLangMap[]
+
+  images          Image[]   @relation("images")
+  productGroups   ProductGroup[]
+  products        Product[]
+  cartItems       CartItem[]
+  orders          Order[]
+  staffs          Staff[]
+
+  messageTemplates MessageTemplate[]
 }
 
 model StoreLangMap {
@@ -88,7 +119,7 @@ model StoreLangMap {
   name        String
   description String
 
-  storeId     Int
+  storeId     String
   store       Store     @relation(fields: [storeId], references: [id], onDelete: Cascade)
 
   langId      String
@@ -110,6 +141,9 @@ model ProductGroup {
   name        String
 
   showTop     Boolean   @default(false)
+
+  storeId     String
+  store       Store     @relation(fields: [storeId], references: [id], onDelete: Cascade)
 
   imgId       String?
   img         Image?    @relation(fields: [imgId], references: [id], onDelete: SetNull)
@@ -142,6 +176,9 @@ model Product {
   groupId         String
   group           ProductGroup      @relation(fields: [groupId], references: [id], onDelete: Cascade)
 
+  storeId         String
+  store           Store             @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
   name            String
   description     String
   price           Int
@@ -155,6 +192,8 @@ model Product {
 
   labelId         String?
   label           Label?            @relation(fields: [labelId], references: [id], onDelete: SetNull)
+
+  @@unique([id, storeId])
 
 
   langMaps        ProductLangMap[]
@@ -225,11 +264,14 @@ model CartItem {
   userId    String
   user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  storeId   String
+  store     Store   @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
   productId String
-  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId, storeId], references: [id, storeId], onDelete: Cascade)
 
   orderId   String?
-  order     Order?  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  order     Order?  @relation(fields: [orderId, storeId], references: [id, storeId], onDelete: Cascade)
 
 
   @@unique([userId, productId, orderId])
@@ -247,6 +289,11 @@ model Order {
 
   userId      String
   user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  storeId     String
+  store       Store     @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  @@unique([id, storeId])
   
 
   cartItems CartItem[]
@@ -281,9 +328,61 @@ model User {
 
   cartItems CartItem[]
   orders    Order[]
-  messages  UserMessage[]
+  messages  Message[]
 
   verifyKey UserVerifyKey?
+
+  staffs    Staff[]
+}
+
+
+model Staff {
+  id        String    @id @default(ulid())
+  
+  storeId   String
+  store     Store     @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  isOwner   Boolean   @default(false)
+}
+
+
+
+
+
+
+
+model MessageTemplate {
+  id        String  @id @default(ulid())
+
+  storeId   String?
+  store     Store?  @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  title     String
+  body      String
+
+  langMaps  MessageTemplateLangMap[]
+
+  messages  Message[]
+}
+
+
+
+model MessageTemplateLangMap {
+  id                  String  @id @default(ulid())
+
+  title               String
+  body                String
+
+  messageTemplateId   String
+  messageTemplate     MessageTemplate @relation(fields: [messageTemplateId], references: [id], onDelete: Cascade)
+
+  langId              String
+  lang                Language        @relation(fields: [langId], references: [id], onDelete: Cascade)
+
+  @@unique([messageTemplateId, langId])
 }
 
 
@@ -294,73 +393,44 @@ model User {
 
 
 model Message {
-  id              String  @id @default(ulid())
+  id                String  @id @default(ulid())
 
-  title           String
-  body            String
+  messageTemplateId String
+  messageTemplate   MessageTemplate @relation(fields: [messageTemplateId], references: [id], onDelete: Cascade)
 
-  url             String?
-  label           String?
+  url               String?
+  label             String?
+  
+  createdAt DateTime @default(now())
 
-  productId       String?
-  product         Product?  @relation(fields: [productId], references: [id], onDelete: SetNull)
+  productId         String?
+  product           Product?  @relation(fields: [productId], references: [id], onDelete: SetNull)
 
-  orderId         String?
-  order           Order?    @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  orderId           String?
+  order             Order?    @relation(fields: [orderId], references: [id], onDelete: SetNull)
+
+  userId            String?
+  user              User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
 
-  langMaps        MessageLangMap[]
-
-  stores          Store[]
-  userMessages    UserMessage[]
-  globalMessages  GlobalMessage[]
+  stores            Store[]
+  userMessageFlag   UserMessageFlag?
 }
 
-model MessageLangMap {
+
+model UserMessageFlag {
   id        String  @id @default(ulid())
 
-  title     String
-  body      String
-
-  messageId String
+  messageId String  @unique
   message   Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
 
-  langId    String
-  lang      Language  @relation(fields: [langId], references: [id], onDelete: Cascade)
-  
-  
-  @@unique([langId, messageId])
+  isRead    Boolean @default(false)
 }
 
 
 
 
 
-
-
-model UserMessage {
-  id        String    @id @default(ulid())
-
-  isRead    Boolean   @default(false)
-
-  userId    String
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  messageId String
-  message   Message   @relation(fields: [messageId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-}
-
-
-model GlobalMessage {
-  id        String  @id @default(ulid())
-
-  messageId String
-  message   Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-}
 
 
 
