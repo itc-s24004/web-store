@@ -4,13 +4,14 @@
 import { cacheLife } from "next/cache";
 import { AppDB } from "../..";
 import { APP_ENV } from "@/app/env";
+import { SystemTextIds } from "../../systemText/id";
 
 export async function get() {
-    const store = await AppDB.store.get();
+    const title = await AppDB.systemText.get(SystemTextIds.TXT_TITLE);
     const languages = await AppDB.language.getAll();
 
     return {
-        store,
+        title,
         languages
     }
 }
@@ -18,14 +19,13 @@ export async function get() {
 
 export async function getCache() {
     cacheLife({
-        revalidate: 1000 * APP_ENV.SERVER_CACHE * 3
+        revalidate: APP_ENV.SERVER_CACHE * 3
     })
+    
+    return get();
+}
 
-    const store = await AppDB.store.get();
-    const languages = await AppDB.language.getAll();
 
-    return {
-        store,
-        languages
-    }
+export type models = {
+    model: Awaited<ReturnType<typeof get>>,
 }

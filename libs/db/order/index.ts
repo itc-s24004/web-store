@@ -169,7 +169,6 @@ export async function updates(targets: string[], data: models["update"]) {
 
 
 export * as email from "./email";
-export * as userId from "./userId";
-export * as userVerifyKey from "./userVerifyKey";
+export * as store from "./store";
 
 export type { models } from "./type";

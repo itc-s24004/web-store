@@ -38,11 +38,17 @@ export async function api_client_req<
 
 
 
-import { API_Client_Staff } from "./staff";
 import { API_Client_User } from "./user";
+import * as cartItem from "./cartItem/client";
+import * as language from "./language/client";
+import * as order from "./order/client";
+import * as store from "./store/client";
+
 
 export const API_Client = {
-    staff: API_Client_Staff,
-    user: API_Client_User
+    cartItem,
+    language,
+    order,
+    store
 }
 

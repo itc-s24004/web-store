@@ -1,7 +1,7 @@
 import { db } from "../db";
 import { models } from "./type";
 
-export async function add(email: string, productId: string, count: number): Promise<models["model"]> {
+export async function add(email: string, storeId: string, productId: string, count: number): Promise<models["model"]> {
     if (count < 1) throw new Error("購入数を1未満にすることはできません");
 
     // db.cartItem.upsert({
@@ -73,16 +73,10 @@ export async function add(email: string, productId: string, count: number): Prom
                         description: true,
                         price: true,
                         stock: true,
-                        showStockDetail: true,
+                        isStockAccurate: true,
                         img: {
                             select: {
                                 url: true
-                            }
-                        },
-                        label: {
-                            select: {
-                                body: true,
-                                color: true
                             }
                         },
                         langMaps: {
@@ -101,6 +95,11 @@ export async function add(email: string, productId: string, count: number): Prom
     } else {
         return await db.cartItem.create({
             data: {
+                store: {
+                    connect: {
+                        id: storeId
+                    }
+                },
                 user: {
                     connect: {
                         email
@@ -123,16 +122,10 @@ export async function add(email: string, productId: string, count: number): Prom
                         description: true,
                         price: true,
                         stock: true,
-                        showStockDetail: true,
+                        isStockAccurate: true,
                         img: {
                             select: {
                                 url: true
-                            }
-                        },
-                        label: {
-                            select: {
-                                body: true,
-                                color: true
                             }
                         },
                         langMaps: {
@@ -207,16 +200,10 @@ export async function getAll(email: string): Promise<models["model"][]> {
                     description: true,
                     price: true,
                     stock: true,
-                    showStockDetail: true,
+                    isStockAccurate: true,
                     img: {
                         select: {
                             url: true
-                        }
-                    },
-                    label: {
-                        select: {
-                            body: true,
-                            color: true
                         }
                     },
                     langMaps: {

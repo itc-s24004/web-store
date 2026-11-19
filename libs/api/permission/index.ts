@@ -44,3 +44,56 @@ export async function getDetail(email: string, updateGet: boolean = false) {
         isLock: user.lockTime > now
     } : null
 }
+
+
+export async function checkStaff(email: string, storeId: string) {
+    const now = new Date();
+
+
+    const user = await db.user.findUnique({
+        where: {
+            email
+        },
+        select: {
+            isAdmin: true,
+            lockTime: true,
+            staffs: {
+                where: {
+                    storeId
+                },
+                select: {
+                    storeId: true,
+                    isOwner: true
+                }
+            }
+        }
+    });
+
+    const staff = user?.staffs.find(s => s.storeId === storeId);
+
+    return user ? {
+        ...user,
+        isLock: user.lockTime > now,
+        isStaff: staff !== undefined,
+        isOwner: staff ? staff.isOwner : false
+    } : null
+}
+
+export async function check(email: string) {
+    const now = new Date();
+
+    const user = await db.user.findUnique({
+        where: {
+            email
+        },
+        select: {
+            isAdmin: true,
+            lockTime: true
+        }
+    });
+
+    return user ? {
+        ...user,
+        isLock: user.lockTime > now
+    } : null
+}

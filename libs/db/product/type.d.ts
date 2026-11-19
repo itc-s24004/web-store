@@ -4,15 +4,13 @@ import { Prisma } from "@/libs/generated/prisma/client";
 type Model_ProductUpdate = Partial<
     Prisma.ProductGetPayload<{
         select: {
-            groupId: true,
             name: true,
             description: true,
             price: true,
-            showStockDetail: true,
+            isStockAccurate: true,
             stock: true,
 
             imgId: true,
-            labelId: true
         }
     }>
 >
@@ -26,16 +24,10 @@ type Model_Product = Prisma.ProductGetPayload<{
         description: true,
         price: true,
         stock: true,
-        showStockDetail: true,
+        isStockAccurate: true,
         img: {
             select: {
                 url: true
-            }
-        },
-        label: {
-            select: {
-                body: true,
-                color: true
             }
         },
         langMaps: {
@@ -52,13 +44,23 @@ type Model_Product = Prisma.ProductGetPayload<{
 type Model_ProductDetail = Prisma.ProductGetPayload<{
     select: {
         id: true,
-        groupId: true,
         name: true,
         description: true,
         price: true,
         
+        store: {
+            select: {
+                id: true,
+                name: true,
+                langMaps: {
+                    select: {
+                        langId: true,
+                        name: true
+                    }
+                }
+            }
+        },
         img: true,
-        label: true,
         langMaps: {
             select: {
                 id: true,
@@ -74,11 +76,10 @@ type Model_ProductDetail = Prisma.ProductGetPayload<{
 type Model_ProductEdit = Prisma.ProductGetPayload<{
     select: {
         id: true,
-        groupId: true,
         name: true,
         description: true,
         price: true,
-        showStockDetail: true,
+        isStockAccurate: true,
         stock: true,
 
         img: {

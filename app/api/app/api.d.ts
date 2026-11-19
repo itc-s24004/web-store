@@ -14,8 +14,9 @@ export type app_api_response_error = {
 
 
 
-type app_api_doc = {
+export type app_api_doc = {
     req: {
+        pathParams?: string
         params: Record<string,
             string | string[] |
             number | number[] |
@@ -46,11 +47,14 @@ export type app_api_request_get<api_map extends app_api_map, type extends keyof 
 
 export type api_url_param = Record<string, string>
 
-export type api_url_param_gen<params extends api_url_param> = {
-    params: Promise<params>
+export type api_url_param_gen<key extends string> = {
+    params: Promise<{
+        [K in key]: string
+    }>
 }
 
 
 export type api_url_param_id = api_url_param_gen<{
     id: string
 }>
+

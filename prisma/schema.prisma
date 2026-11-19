@@ -17,7 +17,7 @@ datasource db {
 generator markdown {
   provider = "prisma-markdown"
   output   = "./ERD.md"
-  title    = "Shopping Mall"
+  title    = "Web Store ERD"
 }
 
 
@@ -40,7 +40,7 @@ model Image {
   stores        Store[]
   productGroups ProductGroup[]
   products      Product[]
-  tutorialPages TutorialPage[]
+  customPageComponents CustomPageComponent[]
 }
 
 
@@ -52,12 +52,11 @@ model Language {
   systemTextLangMaps  SystemTextLangMap[]
   users               User[]
   
-  storeLM             StoreLangMap[]
-  productGroupLM      ProductGroupLangMap[]
-  productLM           ProductLangMap[]
-  labelLM             LabelLangMap[]
-  tutorialPageLM      TutorialPageLangMap[]
-  messageTemplateLM   MessageTemplateLangMap[]
+  storeLM               StoreLangMap[]
+  productGroupLM        ProductGroupLangMap[]
+  productLM             ProductLangMap[]
+  customPageComponentLM CustomPageComponentLangMap[]
+  messageTemplateLM     MessageTemplateLangMap[]
 }
 
 
@@ -97,9 +96,6 @@ model Store {
 
   readyMessageId  String?
   readyMessage    Message?  @relation(fields: [readyMessageId], references: [id], onDelete: SetNull)
-  
-  tutorialId      String?
-  tutorial        Tutorial? @relation(fields: [tutorialId], references: [id], onDelete: SetNull)
 
   langMaps        StoreLangMap[]
 
@@ -111,6 +107,7 @@ model Store {
   staffs          Staff[]
 
   messageTemplates MessageTemplate[]
+  customPages      CustomPage[]
 }
 
 model StoreLangMap {
@@ -148,8 +145,12 @@ model ProductGroup {
   imgId       String?
   img         Image?    @relation(fields: [imgId], references: [id], onDelete: SetNull)
 
-  products    Product[]
+  items       ProductGroupItem[]
   langMaps    ProductGroupLangMap[]
+
+  pageComponents CustomPageComponent[]
+
+  @@unique([id, storeId])
 }
 
 model ProductGroupLangMap {
@@ -167,14 +168,21 @@ model ProductGroupLangMap {
   @@unique([productGroupId, langId])
 }
 
+model ProductGroupItem {
+  id              String    @id @default(ulid())
+
+  productGroupId  String
+  productGroup    ProductGroup @relation(fields: [productGroupId], references: [id], onDelete: Cascade)
+
+  productId       String
+  product         Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
 
 
 
 model Product {
   id              String            @id @default(ulid())
-
-  groupId         String
-  group           ProductGroup      @relation(fields: [groupId], references: [id], onDelete: Cascade)
 
   storeId         String
   store           Store             @relation(fields: [storeId], references: [id], onDelete: Cascade)
@@ -187,18 +195,18 @@ model Product {
   img             Image?            @relation(fields: [imgId], references: [id], onDelete: SetNull)
 
 
-  showStockDetail Boolean           @default(true)
+  isStockAccurate Boolean           @default(true)
   stock           Int               @default(0)
-
-  labelId         String?
-  label           Label?            @relation(fields: [labelId], references: [id], onDelete: SetNull)
 
   @@unique([id, storeId])
 
 
+  items           ProductGroupItem[]
   langMaps        ProductLangMap[]
   cartItems       CartItem[]
   messages        Message[]
+  customPageComponents CustomPageComponent[]
+
 }
 
 model ProductLangMap {
@@ -223,31 +231,6 @@ model ProductLangMap {
 
 
 
-
-model Label {
-  id        String  @id @default(ulid())
-
-  body      String
-  color     String
-
-  products  Product[]
-  langMaps  LabelLangMap[]
-}
-
-model LabelLangMap {
-  id      String    @id @default(ulid())
-
-  body    String
-
-  labelId String
-  label   Label     @relation(fields: [labelId], references: [id], onDelete: Cascade)
-
-  langId  String
-  lang    Language  @relation(fields: [langId], references: [id], onDelete: Cascade)
-
-
-  @@unique([labelId, langId])
-}
 
 
 
@@ -311,7 +294,6 @@ model User {
   id        String    @id @default(ulid())
   email     String    @unique
 
-  isStaff   Boolean   @default(false)
   isAdmin   Boolean   @default(false)
 
   lockTime  DateTime  @default(now())
@@ -346,6 +328,9 @@ model Staff {
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   isOwner   Boolean   @default(false)
+
+
+  @@unique([storeId, userId])
 }
 
 
@@ -433,56 +418,59 @@ model UserMessageFlag {
 
 
 
+model CustomPage {
+  id          String  @id @default(ulid())
 
-
-
-
-
-
-model Tutorial {
-  id            String  @id @default(ulid())
-
-  name          String
-
-  createdAt     DateTime  @default(now())
-
-
-  tutorialPages TutorialPage[]
-  stores        Store[]
-}
-
-model TutorialPage {
-  id          String    @id @default(ulid())
+  storeId     String
+  store       Store   @relation(fields: [storeId], references: [id], onDelete: Cascade)
 
   title       String
-  body        String
+  isPublished Boolean @default(false)
 
-  index       Int
-
-  imgId       String?
-  img         Image?    @relation(fields: [imgId], references: [id], onDelete: SetNull)
-
-  tutorialId  String
-  tutorial    Tutorial  @relation(fields: [tutorialId], references: [id], onDelete: Cascade)
-
-  langMap     TutorialPageLangMap[]
+  components CustomPageComponent[]
 }
 
-model TutorialPageLangMap {
-  id              String
+model CustomPageComponent {
+  id        String  @id @default(ulid())
 
-  title           String
-  body            String
+  index     Int
 
-  tutorialPageId  String
-  tutorialPage    TutorialPage  @relation(fields: [tutorialPageId], references: [id], onDelete: Cascade)
+  
+  title     String?
+  body      String?
 
-  langId          String
-  lang            Language      @relation(fields: [langId], references: [id], onDelete: Cascade)
+  customPageId    String?
+  customPage      CustomPage? @relation(fields: [customPageId], references: [id], onDelete: SetNull)
+  
+  imgId     String?
+  img       Image?  @relation(fields: [imgId], references: [id], onDelete: SetNull)
+
+  productGroupId  String?
+  productGroup    ProductGroup? @relation(fields: [productGroupId], references: [id], onDelete: SetNull)
+
+  productId       String?
+  product         Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
 
 
-  @@unique([tutorialPageId, langId])
+  langMaps CustomPageComponentLangMap[]
 }
+
+model CustomPageComponentLangMap {
+  id          String    @id @default(ulid())
+
+  title       String?
+  body        String?
+
+  componentId String
+  component   CustomPageComponent @relation(fields: [componentId], references: [id], onDelete: Cascade)
+
+  langId      String
+  lang        Language  @relation(fields: [langId], references: [id], onDelete: Cascade)
+
+  @@unique([componentId, langId])
+}
+
+
 
 
 

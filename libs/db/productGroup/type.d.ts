@@ -37,13 +37,7 @@ type Model_ProductGroup = Prisma.ProductGroupGetPayload<{
 
         _count: {
             select: {
-                products: {
-                    where: {
-                        stock: {
-                            gt: 0
-                        }
-                    }
-                }
+                items: true
             }
         }
     }
@@ -106,21 +100,25 @@ type Model_ProductDisplay = Prisma.ProductGroupGetPayload<{
             }
         },
         
-        products: {
+        items: {
             select: {
-                name: true,
-
-                img: {
+                product: {
                     select: {
-                        url: true
+                        name: true,
+
+                        img: {
+                            select: {
+                                url: true
+                            }
+                        }
                     }
                 }
             }
-        },
+        }
 
         _count: {
             select: {
-                products: true
+                items: true
             }
         }
     }

@@ -13,10 +13,15 @@ type Order_Filter = Partial<
 >
 
 
-export async function add(email: string, cartItemIds: string[]) {
+export async function add(email: string, storeId: string, cartItemIds: string[]) {
     return await db.$transaction(async tx => {
         const order = await tx.order.create({
             data: {
+                store: {
+                    connect: {
+                        id: storeId
+                    }
+                },
                 user: {
                     connect: {
                         email
@@ -28,6 +33,7 @@ export async function add(email: string, cartItemIds: string[]) {
                         user: {
                             email
                         },
+                        storeId,
                         orderId: null
                     }))
                 }
@@ -123,12 +129,13 @@ export async function cancel(email: string, id: string) {
 
 
 
-export async function getAll(email: string, filter: Order_Filter): Promise<models["model"][]> {
+export async function getAll(email: string, storeId: string, filter: Order_Filter): Promise<models["model"][]> {
     return db.order.findMany({
         where: {
             user: {
                 email
             },
+            storeId,
             ...filter
         },
         select: {

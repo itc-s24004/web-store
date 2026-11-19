@@ -20,16 +20,10 @@ type Model_CartItem = Prisma.CartItemGetPayload<{
                 description: true,
                 price: true,
                 stock: true,
-                showStockDetail: true,
+                isStockAccurate: true,
                 img: {
                     select: {
                         url: true
-                    }
-                },
-                label: {
-                    select: {
-                        body: true,
-                        color: true
                     }
                 },
                 langMaps: {

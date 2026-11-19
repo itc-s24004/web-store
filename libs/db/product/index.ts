@@ -6,51 +6,42 @@ import { models } from "./type";
 export async function getTop(): Promise<models["model"][]> {
     return db.product.findMany({
         select: {
-            id: true,
-            groupId: true,
-            name: true,
-            description: true,
-            price: true,
-            stock: true,
-            showStockDetail: true,
-            
-            img: {
-                select: {
-                    url: true
-                }
-            },
-            label: {
-                select: {
-                    body: true,
-                    color: true
-                }
-            },
-            langMaps: {
-                select: {
-                    name: true,
-                    description: true,
-                    langId: true
-                }
+        id: true,
+        name: true,
+        description: true,
+        price: true,
+        stock: true,
+        isStockAccurate: true,
+        img: {
+            select: {
+                url: true
             }
+        },
+        langMaps: {
+            select: {
+                name: true,
+                description: true,
+                langId: true
+            }
+        }
         }
     })
 }
 
-export async function add(groupId: string, name: string, description: string, price: number): Promise<models["edit"]> {
+export async function add(storeId: string, name: string, description: string, price: number): Promise<models["edit"]> {
     return db.product.create({
         data: {
-            groupId,
+            storeId,
             name,
             description,
             price
         },
         select: {
             id: true,
-            groupId: true,
             name: true,
             description: true,
             price: true,
-            showStockDetail: true,
+            isStockAccurate: true,
             stock: true,
 
             img: {
@@ -60,6 +51,41 @@ export async function add(groupId: string, name: string, description: string, pr
                 }
             },
             
+            langMaps: {
+                select: {
+                    id: true,
+                    name: true,
+                    description: true,
+                    langId: true
+                }
+            }}
+    })
+}
+
+export async function getDetail(id: string): Promise<models["detail"] | null> {
+    return db.product.findUnique({
+        where: {
+            id
+        },
+        select: {
+            id: true,
+            name: true,
+            description: true,
+            price: true,
+            
+            store: {
+                select: {
+                    id: true,
+                    name: true,
+                    langMaps: {
+                        select: {
+                            langId: true,
+                            name: true
+                        }
+                    }
+                }
+            },
+            img: true,
             langMaps: {
                 select: {
                     id: true,
@@ -97,15 +123,17 @@ export async function update(id: string, data: models["update"]) {
     })
 }
 
-export async function getEdit(): Promise<models["edit"][]> {
+export async function getEdit(storeId: string): Promise<models["edit"][]> {
     return db.product.findMany({
+        where: {
+            storeId
+        },
         select: {
             id: true,
-            groupId: true,
             name: true,
             description: true,
             price: true,
-            showStockDetail: true,
+            isStockAccurate: true,
             stock: true,
 
             img: {
@@ -129,6 +157,9 @@ export async function getEdit(): Promise<models["edit"][]> {
 
 
 
+
+
+export * as store from "./store"
 
 
 export type { models } from "./type";

@@ -12,7 +12,6 @@ type Model_OrderUpdate = Partial<
     }>
 >
 
-
 type Model_Order = Prisma.OrderGetPayload<{
     select: {
         id: true,
@@ -61,6 +60,8 @@ type Model_OrderMin = Prisma.OrderGetPayload<{
         isCanceled: true,
         isReceived: true,
         isReady: true,
+        requestedAt: true,
+        
         cartItems: {
             select: {
                 id: true,

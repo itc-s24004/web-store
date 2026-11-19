@@ -26,13 +26,7 @@ export async function getAll(): Promise<models["model"][]> {
 
             _count: {
                 select: {
-                    products: {
-                        where: {
-                            stock: {
-                                gt: 0
-                            }
-                        }
-                    }
+                    items: true
                 }
             }
         }
@@ -98,9 +92,10 @@ export async function getDetail(id: string): Promise<models["detail"] | null> {
 
 
 
-export async function add(name: string, showTop: boolean, imgId?: string): Promise<models["edit"]> {
+export async function add(storeId: string, name: string, showTop?: boolean, imgId?: string): Promise<models["edit"]> {
     return db.productGroup.create({
         data: {
+            storeId,
             name,
             showTop,
             imgId
@@ -128,11 +123,9 @@ export async function add(name: string, showTop: boolean, imgId?: string): Promi
     })
 }
 
-export async function remove(id: string) {
+export async function remove(find: findParams) {
     return db.productGroup.delete({
-        where: {
-            id
-        },
+        where: find,
         select: {
             id: true,
         }
@@ -141,11 +134,15 @@ export async function remove(id: string) {
 
 
 
-export async function update(id: string, data: models["update"]) {
+
+type findParams = {
+    id: string,
+    storeId?: string
+}
+
+export async function update(find: findParams, data: models["update"]) {
     return db.productGroup.update({
-        where: {
-            id
-        },
+        where: find,
         data,
         select: {
             id: true
@@ -199,13 +196,17 @@ export async function getDisplay(): Promise<models["deisplay"][]> {
                 }
             },
             
-            products: {
+            items: {
                 select: {
-                    name: true,
-
-                    img: {
+                    product: {
                         select: {
-                            url: true
+                            name: true,
+
+                            img: {
+                                select: {
+                                    url: true
+                                }
+                            }
                         }
                     }
                 }
@@ -213,7 +214,7 @@ export async function getDisplay(): Promise<models["deisplay"][]> {
 
             _count: {
                 select: {
-                    products: true
+                    items: true
                 }
             }
         }
