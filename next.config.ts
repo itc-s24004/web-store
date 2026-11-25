@@ -6,7 +6,6 @@ const nextConfig: NextConfig = {
         agentFeedback: true,
         authInterrupts: true
     },
-  allowedDevOrigins: ['172.16.42.4'],
 
     images: {
         remotePatterns: [

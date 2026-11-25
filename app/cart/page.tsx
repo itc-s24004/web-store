@@ -25,6 +25,8 @@ export default async function Page() {
     if (permission.isLock) forbidden();
 
     const base = await AppDB._custom.base.getCache();
+    const storeGroupCartItems = AppDB.cartItem.email.storeGroup.getCache(email);
+    const user = AppDB.user.email.detailMin.getCache(email);
 
-    return <PageView {...base} />
+    return <PageView items={storeGroupCartItems} user={user} {...base} />
 }

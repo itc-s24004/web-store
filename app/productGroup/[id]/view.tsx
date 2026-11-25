@@ -1,52 +1,40 @@
 "use client"
 
 
-import { API_Client } from "@/app/api/app/client";
 import { AppDB_Types } from "@/libs/db";
-import { Button } from "@/libs/element/button";
-import { Display_Product } from "@/libs/element/display/product";
-import { Select } from "@/libs/element/form/template/select";
-import { Option } from "@/libs/element/form/template/select/option";
+import { Container } from "@/libs/element/container";
 import { AppView } from "@/libs/element/layout";
 import { Content } from "@/libs/element/layout/content";
 import { ContentWrapper } from "@/libs/element/layout/contentWrapper";
-import { Header } from "@/libs/element/layout/header";
 import { Navigation } from "@/libs/element/layout/navigation";
-import { useAPI_UserDetailMin } from "@/libs/element/state/appAPI/userAPI_UserDetailMin";
-import { useAPI } from "@/libs/element/state/useAPI";
-import Link from "next/link";
-import { useState } from "react";
+import { View_Card_Product } from "@/libs/element/view/card/product";
+import { View_Header } from "@/libs/element/view/header";
+import { Suspense, use } from "react";
 
 type PageView_Props = {
-    store: AppDB_Types["store"]["model"],
-    languages: AppDB_Types["language"]["model"][],
-    productGroup: AppDB_Types["productGroup"]["detail"]
-}
+    productGroup: Promise<AppDB_Types["productGroup"]["detail"] | null>
+    user?: Promise<AppDB_Types["user"]["detailMin"] | null>
+} & AppDB_Types["_custom"]["base"]["model"]
 
-export function PageView({ store, languages, productGroup }: PageView_Props) {
-    const user = useAPI_UserDetailMin();
-    
+export function PageView({ title, languages, productGroup, user }: PageView_Props) {
     
     
     return (
         <AppView>
-            <Header
-                languages={languages}
-                userLanguageId={null}
-                title={store.name}
-                toast={user.user?._count.messages}
-            />
+            <View_Header userLanguageId={null} title={title} languages={[]} user={user} />
             <ContentWrapper>
                 <Content>
-                    <div className="flex flex-col gap-2 py-2 sm:flex-row sm:flex-wrap items-center sm:justify-center">
-                        {
-                            productGroup.products.map((p) => (
-                                <span key={p.id} className="w-full sm:size-fit flex justify-center">
-                                    <ProductView key={p.id} product={p} className="flex-1" canAddCart={!user.waiting && user.user !== undefined}/>
-                                </span>
-                            ))
-                        }
-                    </div>
+                    <Container className="gap-2 p-2">
+                        <Suspense fallback={
+                            <>
+                                <View_Card_Product />
+                                <View_Card_Product />
+                                <View_Card_Product />
+                            </>
+                        }>
+                            <PG pg={productGroup} />
+                        </Suspense>
+                    </Container>
                 </Content>
                 <Navigation />
             </ContentWrapper>
@@ -54,56 +42,16 @@ export function PageView({ store, languages, productGroup }: PageView_Props) {
     )
 }
 
-
-
-type ProductView_Props = {
-    product: AppDB_Types["product"]["model"],
-    canAddCart: boolean
-} & React.JSX.IntrinsicElements["div"]
-
-function ProductView({ product, canAddCart, ...props }: ProductView_Props) {
-    const [count, setCount] = useState<number>(1);
-    const [success, setSuccess] = useState<boolean>(true);
-    const addCart = useAPI(async () => {
-        const res = await API_Client.user.cartItem.add({
-            productId: product.id,
-            count
-        })
-        setSuccess(res?.body.success ?? false);
-    })
-    
+function PG({pg}: {pg: Promise<AppDB_Types["productGroup"]["detail"] | null>}) {
+    const p = use(pg);
     
     return (
-        <Display_Product key={product.id} name={product.name} imgSrc={product.img?.url} price={product.price} {...props}>
-            <div className="flex-1 flex flex-col gap-2">
-                <p>
-                    {
-                        product.showStockDetail ? "在庫: " : "予定在庫: "
-                    }
-                    {product.stock}個
-                </p>
-                <Select
-                    hidden={!canAddCart}
-                    value={count} onChange={(e) => setCount(Number(e.target.value))} className="text-lg"
-                >
-                    {
-                        Array.from({ length: 5 }, (_, i) => i + 1).map((n) => (
-                            <Option key={n} value={n}>x{n}</Option>
-                        ))
-                    }
-                </Select>
-                <label hidden={success} className="text-sm text-red-500">※追加に失敗しました</label>
-                <Button
-                    hidden={!canAddCart}
-                    onClick={() => {addCart.request()}} className="rounded-full w-full bg-(--app-theme) text-(--app-theme-text)"
-                >
-                    <div className="bg-white/5 p-2 rounded-full">
-                        {
-                            addCart.waiting ? "追加中...": "カートに追加"
-                        }
-                    </div>
-                </Button>
-            </div>
-        </Display_Product>
+        <>
+            {
+                p?.items.map((item, i) => (
+                    <View_Card_Product key={i} product={item.product} titleLink={true} />
+                ))
+            }
+        </>
     )
 }
