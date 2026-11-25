@@ -114,5 +114,5 @@ export const APP_ENV = {
 
 
     CLIENT_CACHE: Z_CLIENT_CACHE.data,
-    SERVER_CACHE: Z_SERVER_CACHE.data
+    SERVER_CACHE: Z_SERVER_CACHE.data * 1000
 }

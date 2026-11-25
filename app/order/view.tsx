@@ -4,8 +4,7 @@
 import { AppDB_Types } from "@/libs/db";
 import { AppView } from "@/libs/element/layout";
 import { Content } from "@/libs/element/layout/content";
-import { ContentWrapper } from "@/libs/element/layout/contentWrapper";
-import { Header } from "@/libs/element/layout/header";
+import { ContentWrapper } from "@/libs/element/layout/contentWrapper"
 import { Navigation } from "@/libs/element/layout/navigation";
 import { useAPI } from "@/libs/element/state/useAPI";
 import { CheckCircle2, Clock3, LoaderCircle, PackageCheck, ReceiptText } from "lucide-react";
@@ -15,39 +14,30 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useServiceWorker } from "@/libs/element/state/useServiceWorker";
 import { Button } from "@/libs/element/button";
+import { View_Header } from "@/libs/element/view/header";
 
 type PageView_Props = {
-    store: AppDB_Types["store"]["model"],
-    languages: AppDB_Types["language"]["model"][]
-}
+    orders: AppDB_Types["order"]["model"][]
+} & AppDB_Types["_custom"]["base"]["model"]
 
-export function PageView({ store, languages }: PageView_Props) {
-    const [orders, setOrders] = useState<AppDB_Types["order"]["model"][]>([]);
-    const get = useAPI(async () => {
-        const res = await API_Client.user.order.getAll();
-        if (res?.body.success) setOrders(res.body.data);
-    });
-
-    useEffect(() => {
-        get.request();
-    }, [])
+export function PageView({ orders, ...base }: PageView_Props) {
 
 
 
-    const serviceWorker = useServiceWorker();
-    useEffect(() => {
-        const dataQueue = serviceWorker.dataQueue;
-        if (dataQueue.length === 0) return;
-        const requireUpdate = serviceWorker.dataQueue.some((data) => data.type === "update" && data.data.target === "order");
-        if (requireUpdate) get.request();
-        serviceWorker.clearQueue();
-    }, [serviceWorker, get])
+    // const serviceWorker = useServiceWorker();
+    // useEffect(() => {
+    //     const dataQueue = serviceWorker.dataQueue;
+    //     if (dataQueue.length === 0) return;
+    //     const requireUpdate = serviceWorker.dataQueue.some((data) => data.type === "update" && data.data.target === "order");
+    //     if (requireUpdate) get.request();
+    //     serviceWorker.clearQueue();
+    // }, [serviceWorker, get])
     
     
     
     return (
         <AppView>
-            <Header languages={languages} userLanguageId={""} title={store.name} />
+            <View_Header {...base} />
             <ContentWrapper>
                 <Content>
                     <div className="mx-auto flex w-full max-w-2xl flex-col gap-4 py-5">
@@ -57,26 +47,14 @@ export function PageView({ store, languages }: PageView_Props) {
                                 <h1 className="mt-1 text-2xl font-bold tracking-tight text-(--text-color)">注文履歴</h1>
                             </div>
                             <span className="rounded-full bg-(--container-background) px-3 py-1 text-sm font-semibold text-(--text-color-sub)">
-                                {orders.length}件
+                                {orders?.length}件
                             </span>
                         </div>
 
                         {
-                            get.waiting ? (
-                                <div className="flex flex-col items-center justify-center rounded-2xl border border-(--container-background-sub) bg-(--container-background) px-6 py-16 text-center shadow-sm">
-                                    <LoaderCircle size={42} strokeWidth={1.5} className="animate-spin text-(--app-theme-sub)/60" />
-                                    <h2 className="mt-4 text-lg font-bold text-(--text-color)">注文履歴を取得中</h2>
-                                    <p className="mt-1 text-sm text-(--text-color-sub)">しばらくお待ちください。</p>
-                                </div>
-                            ) : orders.length === 0 ? (
-                                <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-(--container-background-sub) bg-(--container-background) px-6 py-16 text-center shadow-sm">
-                                    <ReceiptText size={42} strokeWidth={1.5} className="text-(--app-theme-sub)/45" />
-                                    <h2 className="mt-4 text-lg font-bold text-(--text-color)">注文履歴はありません</h2>
-                                    <p className="mt-1 text-sm text-(--text-color-sub)">注文すると、ここに履歴が表示されます。</p>
-                                </div>
-                            ) : orders.map((order) => (
+                            orders?.map((order) => (
                                 <OrderView key={order.id} order={order} onCancel={() => {
-                                    setOrders((prev) => prev.filter((o) => o.id !== order.id));
+                                    // setOrders((prev) => prev.filter((o) => o.id !== order.id));
                                 }} />
                             ))
                         }
@@ -98,7 +76,7 @@ type OrderView_Props = {
 
 function OrderView({ order, onCancel }: OrderView_Props) {
     const cancel = useAPI(async () => {
-        const res = await API_Client.user.order.cancel(order.id);
+        const res = await API_Client.order.cancel(order.id);
         if (res?.body.success) onCancel();
     })
     

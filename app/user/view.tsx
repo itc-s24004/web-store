@@ -6,19 +6,18 @@ import { Button } from "@/libs/element/button";
 import { AppView } from "@/libs/element/layout";
 import { Content } from "@/libs/element/layout/content";
 import { ContentWrapper } from "@/libs/element/layout/contentWrapper";
-import { Header } from "@/libs/element/layout/header";
+// import { Header } from "@/libs/element/layout/header";
 import { Navigation } from "@/libs/element/layout/navigation";
 import { useAPI_UserDetailMin } from "@/libs/element/state/appAPI/userAPI_UserDetailMin";
 import { useLanguage } from "@/libs/element/state/useLanguage";
+import { View_Header } from "@/libs/element/view/header";
 import { signOut } from "next-auth/react";
 import Link from "next/link";
 
 type PageView_Props = {
-    store: AppDB_Types["store"]["model"],
-    languages: AppDB_Types["language"]["model"][]
-}
+} & AppDB_Types["_custom"]["base"]["model"]
 
-export function PageView({ store, languages }: PageView_Props) {
+export function PageView({ ...base }: PageView_Props) {
     
     const userLang = useLanguage();
     const user = useAPI_UserDetailMin();
@@ -26,11 +25,7 @@ export function PageView({ store, languages }: PageView_Props) {
     
     return (
         <AppView>
-            <Header languages={languages} userLanguageId={userLang.langId} title={store.name}
-                onLanguageChange={(lng) => {
-                    if (lng) userLang.setLangId(lng)
-                }}
-            />
+            <View_Header {...base} />
             <ContentWrapper>
                 <Content>
                     <Button
