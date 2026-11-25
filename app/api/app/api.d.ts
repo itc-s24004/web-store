@@ -54,7 +54,5 @@ export type api_url_param_gen<key extends string> = {
 }
 
 
-export type api_url_param_id = api_url_param_gen<{
-    id: string
-}>
+export type api_url_param_id = api_url_param_gen<"id">
 

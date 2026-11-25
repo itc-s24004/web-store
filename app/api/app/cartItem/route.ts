@@ -29,7 +29,9 @@ const POST_BODY = z.object({
     quantity: z.number().int().positive()
 })
 
-export const {} = API_Route<AppAPI_cartItem>({
+export const {
+    POST
+} = API_Route<AppAPI_cartItem>({
     POST: async (req) => {
         const email = await AppAPI.session.getEmail();
         if (!email) return AppAPI.response.genError.Unauthorized();

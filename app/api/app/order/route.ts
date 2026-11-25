@@ -54,6 +54,7 @@ export const {
                 data: undefined
             })
         } catch (e) {
+            console.log(e)
             return AppAPI.response.genError.ServerError()
         }
     }

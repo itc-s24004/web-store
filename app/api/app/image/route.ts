@@ -51,7 +51,7 @@ export const {
         const email = await AppAPI.session.getEmail();
         if (!email) return AppAPI.response.genError.Unauthorized();
 
-        const permission = await AppAPI.permission.get(email);
+        const permission = await AppAPI.permission.check(email);
         if (!permission) return AppAPI.response.genError.Unauthorized();
         if (!permission.isAdmin) return AppAPI.response.genError.Forbidden();
 

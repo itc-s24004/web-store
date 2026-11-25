@@ -28,7 +28,8 @@ export type AppAPI_cartItem__cartItemId = app_api_map_gen<{
 
 
 export const {
-
+    PATCH,
+    DELETE
 } = API_Route<AppAPI_cartItem__cartItemId>({
     PATCH: async (req, { params }) => {
         const email = await AppAPI.session.getEmail();
