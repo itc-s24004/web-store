@@ -1,5 +1,7 @@
+import { cacheLife, cacheTag } from "next/cache";
 import { db } from "../db";
 import { models } from "./type";
+import { APP_ENV } from "@/app/env";
 
 
 export async function get(id: string): Promise<models["model"] | null> {
@@ -45,7 +47,11 @@ export async function getDetailMin(id: string): Promise<models["detailMin"] | nu
                     },
                     messages: {
                         where: {
-                            isRead: false
+                            userMessageFlag: {
+                                isNot: {
+                                    isRead: true
+                                }
+                            }
                         }
                     }
                 }

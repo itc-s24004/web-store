@@ -2,6 +2,7 @@ import { Prisma } from "@/libs/generated/prisma/client";
 
 type Model_Store = Prisma.StoreGetPayload<{
     select: {
+        id: true,
         name: true,
         description: true,
         img: {

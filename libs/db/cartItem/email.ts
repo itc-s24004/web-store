@@ -1,3 +1,4 @@
+import { cacheTag } from "next/cache";
 import { db } from "../db";
 import { models } from "./type";
 
@@ -217,4 +218,75 @@ export async function getAll(email: string): Promise<models["model"][]> {
             }
         }
     })
+}
+
+export const storeGroup = {
+    get(email: string): Promise<models["storeGroup"][]> {
+        return db.store.findMany({
+            where: {
+                cartItems: {
+                    some: {
+                        user: {
+                            email
+                        },
+                        orderId: null
+                    }
+                }
+            },
+            select: {
+                id: true,
+                name: true,
+                langMaps: {
+                    select: {
+                        name: true,
+                        langId: true
+                    }
+                },
+                cartItems: {
+                    where: {
+                        user: {
+                            email
+                        },
+                        orderId: null
+                    },
+                    select: {
+                        id: true,
+                        count: true,
+                        product: {
+                            select: {
+                                id: true,
+                                name: true,
+                                description: true,
+                                price: true,
+                                stock: true,
+                                isStockAccurate: true,
+                                img: {
+                                    select: {
+                                        url: true
+                                    }
+                                },
+                                langMaps: {
+                                    select: {
+                                        name: true,
+                                        description: true,
+                                        langId: true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        })
+    },
+    async getCache(email: string) {
+        "use cache";
+        cacheTag(...genCacheTag(email));
+        
+        return storeGroup.get(email);
+    }
+}
+
+function genCacheTag(email?: string) {
+    return email ? ["db-cartItem", `db-cartItem-${email}`] : ["db-cartItem"];
 }

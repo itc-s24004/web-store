@@ -1,3 +1,4 @@
+import { cacheTag } from "next/cache";
 import { db } from "../db";
 import { models } from "./type";
 
@@ -56,6 +57,95 @@ export async function get(id: string): Promise<models["model"] | null> {
         }
     })
 }
+
+export const model = {
+    get(id: string): Promise<models["model"] | null> {
+        return db.store.findUnique({
+            where: {
+                id
+            },
+            select: {
+                id: true,
+                name: true,
+                description: true,
+                img: {
+                    select: {
+                        url: true
+                    }
+                },
+                langMaps: {
+                    select: {
+                        name: true,
+                        description: true,
+                        langId: true
+                    }
+                }
+            }
+        })
+    },
+    async getCache(id: string): Promise<models["model"] | null> {
+        "use cache"
+        cacheTag(...genCacheTag(id))
+        
+        return model.get(id);
+    }
+}
+
+
+export const detail = {
+    get(id: string): Promise<models["detail"] | null> {
+        return db.store.findUnique({
+            where: {
+                id
+            },
+            select: {
+                id: true,
+                name: true,
+                description: true,
+                img: {
+                    select: {
+                        url: true
+                    }
+                },
+                langMaps: {
+                    select: {
+                        name: true,
+                        description: true,
+                        langId: true
+                    }
+                },
+                productGroups: {
+                    select: {
+                        id: true,
+                        name: true,
+                        img: {
+                            select: {
+                                url: true
+                            }
+                        },
+                        langMaps: {
+                            select: {
+                                name: true,
+                                langId: true
+                            }
+                        }
+                    }
+                }
+            }
+        })
+    },
+    async getCache(id: string): Promise<models["detail"] | null> {
+        "use cache"
+        cacheTag(...genCacheTag(id))
+        
+        return detail.get(id);
+    }
+}
+
+function genCacheTag(id?: string) {
+    return id ? ["db-store", `db-store-${id}`] : ["db-store"];
+}
+
 
 
 export async function getDetail(id: string): Promise<models["detail"] | null> {

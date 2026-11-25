@@ -26,3 +26,39 @@ export function remove(storeId: string, productId: string) {
         }
     })
 }
+
+
+export const model = {
+    get(storeId: string): Promise<models["model"][]> {
+        return db.product.findMany({
+            where: {
+                storeId
+            },
+            select: {
+                id: true,
+                name: true,
+                description: true,
+                price: true,
+                stock: true,
+                isStockAccurate: true,
+                img: {
+                    select: {
+                        url: true
+                    }
+                },
+                langMaps: {
+                    select: {
+                        name: true,
+                        description: true,
+                        langId: true
+                    }
+                }
+            }
+        })
+    },
+    async getCache(storeId: string): Promise<models["model"][]> {
+        "use cache";
+
+        return model.get(storeId);
+    }
+}

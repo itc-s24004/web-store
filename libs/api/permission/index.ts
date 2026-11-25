@@ -9,7 +9,6 @@ export async function get(email: string) {
         },
         select: {
             isAdmin: true,
-            isStaff: true,
             lockTime: true
         }
     });

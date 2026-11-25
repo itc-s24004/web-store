@@ -1,3 +1,4 @@
+import { cacheTag } from "next/cache";
 import { db } from "../db";
 import { models } from "./type";
 
@@ -62,41 +63,87 @@ export async function add(storeId: string, name: string, description: string, pr
     })
 }
 
-export async function getDetail(id: string): Promise<models["detail"] | null> {
-    return db.product.findUnique({
-        where: {
-            id
-        },
-        select: {
-            id: true,
-            name: true,
-            description: true,
-            price: true,
-            
-            store: {
-                select: {
-                    id: true,
-                    name: true,
-                    langMaps: {
-                        select: {
-                            langId: true,
-                            name: true
+
+
+export const detail = {
+    get: async (id: string): Promise<models["detail"] | null> => {
+        return db.product.findUnique({
+            where: {
+                id
+            },
+            select: {
+                id: true,
+                name: true,
+                description: true,
+                price: true,
+                stock: true,
+                isStockAccurate: true,
+                
+                store: {
+                    select: {
+                        id: true,
+                        name: true,
+                        langMaps: {
+                            select: {
+                                langId: true,
+                                name: true
+                            }
                         }
                     }
-                }
-            },
-            img: true,
-            langMaps: {
-                select: {
-                    id: true,
-                    name: true,
-                    description: true,
-                    langId: true
+                },
+                img: {
+                    select: {
+                        url: true
+                    }
+                },
+                items: {
+                    select: {
+                        productGroup: {
+                            select: {
+                                id: true,
+                                name: true,
+                                showTop: true,
+
+                                img: {
+                                    select: {
+                                        url: true
+                                    }
+                                },
+                                langMaps: {
+                                    select: {
+                                        name: true,
+                                        langId: true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                langMaps: {
+                    select: {
+                        id: true,
+                        name: true,
+                        description: true,
+                        langId: true
+                    }
                 }
             }
-        }
-    })
+        })
+    },
+    getCache: async (id: string): Promise<models["detail"] | null> => {
+        "use cache"
+        cacheTag(...genCacheTag(id))
+
+        
+        return detail.get(id);
+    }
 }
+
+function genCacheTag(id?: string) {
+    return id ? ["db-product", `db-product-${id}`] : ["db-product"];
+}
+
+
 
 
 export async function remove(id: string) {

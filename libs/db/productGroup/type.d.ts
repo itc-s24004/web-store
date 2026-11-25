@@ -21,7 +21,6 @@ type Model_ProductGroup = Prisma.ProductGroupGetPayload<{
     select: {
         id: true,
         name: true,
-        showTop: true,
 
         img: {
             select: {
@@ -32,12 +31,6 @@ type Model_ProductGroup = Prisma.ProductGroupGetPayload<{
             select: {
                 name: true,
                 langId: true
-            }
-        },
-
-        _count: {
-            select: {
-                items: true
             }
         }
     }
@@ -55,32 +48,29 @@ type Model_ProductGroupDetail = Prisma.ProductGroupGetPayload<{
                 url: true
             }
         },
-        
-        products: {
-            select: {
-                id: true,
-                name: true,
-                description: true,
-                price: true,
-                showStockDetail: true,
-                stock: true,
 
-                img: {
+        items: {
+            select: {
+                product: {
                     select: {
-                        url: true
-                    }
-                },
-                label: {
-                    select: {
-                        body: true,
-                        color: true
-                    }
-                },
-                langMaps: {
-                    select: {
+                        id: true,
                         name: true,
                         description: true,
-                        langId: true
+                        price: true,
+                        stock: true,
+                        isStockAccurate: true,
+                        img: {
+                            select: {
+                                url: true
+                            }
+                        },
+                        langMaps: {
+                            select: {
+                                name: true,
+                                description: true,
+                                langId: true
+                            }
+                        }
                     }
                 }
             }

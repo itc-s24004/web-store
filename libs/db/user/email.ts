@@ -1,6 +1,8 @@
 import { AppCrypto } from "@/libs/crypto/crypto";
 import { db } from "../db";
 import { models } from "./type";
+import { cacheLife, cacheTag } from "next/cache";
+import { APP_ENV } from "@/app/env";
 
 export async function login(emailRaw: string) {
     const email = AppCrypto.encrypt(emailRaw);
@@ -62,7 +64,11 @@ export async function getDetailMin(email: string): Promise<models["detailMin"] |
                     },
                     messages: {
                         where: {
-                            isRead: false
+                            userMessageFlag: {
+                                isNot: {
+                                    isRead: true
+                                }
+                            }
                         }
                     }
                 }
@@ -71,6 +77,59 @@ export async function getDetailMin(email: string): Promise<models["detailMin"] |
     })
 }
 
+
+export const detailMin = {
+    async get(email: string): Promise<models["detailMin"] | null> {
+        return db.user.findUnique({
+            where: {
+                email
+            },
+            select: {
+                id: true,
+                langId: true,
+                subscribe_hash: true,
+                
+                _count: {
+                    select: {
+                        cartItems: {
+                            where: {
+                                orderId: null
+                            }
+                        },
+                        orders: {
+                            where: {
+                                isCanceled: false,
+                                isReceived: false,
+                                isReady: true
+                            }
+                        },
+                        messages: {
+                            where: {
+                                userMessageFlag: {
+                                    isNot: {
+                                        isRead: true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        })
+    },
+    async getCache(email: string): Promise<models["detailMin"] | null> {
+        "use cache"
+        cacheLife({
+            revalidate: APP_ENV.SERVER_CACHE
+        })
+        cacheTag(detailMin.genCacheTag(email))
+        
+        return detailMin.get(email);
+    },
+    genCacheTag(email?: string) {
+        return email ? `db-user-${email}` : `db-user`;
+    }
+}
 
 
 export async function update(email: string, data: models["update"]) {

@@ -85,8 +85,64 @@ type Model_OrderMin = Prisma.OrderGetPayload<{
 
 
 
+type Model_StoreGroup = Prisma.StoreGetPayload<{
+    select: {
+        id: true,
+        name: true,
+        langMaps: {
+            select: {
+                name: true,
+                langId: true
+            }
+        },
+        orders: {
+            select: {
+                id: true,
+                index: true,
+                isCanceled: true,
+                isReceived: true,
+                isReady: true,
+                requestedAt: true,
+                cartItems: {
+                    select: {
+                        id: true,
+                        count: true,
+                        product: {
+                            select: {
+                                id: true,
+                                name: true,
+                                price: true,
+                                stock: true,
+                                img: {
+                                    select: {
+                                        url: true
+                                    }
+                                },
+                                langMaps: {
+                                    select: {
+                                        name: true,
+                                        langId: true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                _count: {
+                    select: {
+                        cartItems: true
+                    }
+                }
+            }
+        }
+    }
+}>
+
+
+
 export type models = {
     update: Model_OrderUpdate,
     model: Model_Order,
-    orderMin: Model_OrderMin
+    orderMin: Model_OrderMin,
+    storeGroup: Model_StoreGroup
 }

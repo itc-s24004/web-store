@@ -47,6 +47,8 @@ type Model_ProductDetail = Prisma.ProductGetPayload<{
         name: true,
         description: true,
         price: true,
+        stock: true,
+        isStockAccurate: true,
         
         store: {
             select: {
@@ -60,7 +62,34 @@ type Model_ProductDetail = Prisma.ProductGetPayload<{
                 }
             }
         },
-        img: true,
+        img: {
+            select: {
+                url: true
+            }
+        },
+        items: {
+            select: {
+                productGroup: {
+                    select: {
+                        id: true,
+                        name: true,
+                        showTop: true,
+
+                        img: {
+                            select: {
+                                url: true
+                            }
+                        },
+                        langMaps: {
+                            select: {
+                                name: true,
+                                langId: true
+                            }
+                        }
+                    }
+                }
+            }
+        }
         langMaps: {
             select: {
                 id: true,

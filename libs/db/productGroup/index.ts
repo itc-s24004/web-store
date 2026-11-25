@@ -1,5 +1,47 @@
+import { cacheTag } from "next/cache";
+import { getCache } from "../_custom/base";
 import { db } from "../db";
 import { models } from "./type";
+
+
+export const model = {
+    get(): Promise<models["model"][]> {
+        return db.productGroup.findMany({
+            where: {
+                showTop: true
+            },
+            select: {
+                id: true,
+                name: true,
+                showTop: true,
+
+                img: {
+                    select: {
+                        url: true
+                    }
+                },
+                
+                langMaps: {
+                    select: {
+                        name: true,
+                        langId: true
+                    }
+                }
+            }
+        })
+    },
+    async getCache(): Promise<models["model"][]> {
+        "use cache"
+        cacheTag(...genCacheTag())
+        
+        return model.get();
+    }
+}
+
+function genCacheTag(id?: string) {
+    return id ? ["db-productGroup", `db-productGroup-${id}`] : ["db-productGroup"];
+}
+
 
 export async function getAll(): Promise<models["model"][]> {
     return db.productGroup.findMany({
@@ -22,15 +64,64 @@ export async function getAll(): Promise<models["model"][]> {
                     name: true,
                     langId: true
                 }
-            },
-
-            _count: {
-                select: {
-                    items: true
-                }
             }
         }
     })
+}
+
+
+export const detail = {
+    get(id: string): Promise<models["detail"] | null> {
+        return db.productGroup.findUnique({
+            where: {
+                id
+            },
+            select: {
+                id: true,
+                name: true,
+                showTop: true,
+
+                img: {
+                    select: {
+                        url: true
+                    }
+                },
+
+                items: {
+                    select: {
+                        product: {
+                            select: {
+                                id: true,
+                                name: true,
+                                description: true,
+                                price: true,
+                                stock: true,
+                                isStockAccurate: true,
+                                img: {
+                                    select: {
+                                        url: true
+                                    }
+                                },
+                                langMaps: {
+                                    select: {
+                                        name: true,
+                                        description: true,
+                                        langId: true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        })
+    },
+    async getCache(id: string): Promise<models["detail"] | null> {
+        "use cache"
+        cacheTag(...genCacheTag(id))
+        
+        return detail.get(id);
+    }
 }
 
 
@@ -50,40 +141,31 @@ export async function getDetail(id: string): Promise<models["detail"] | null> {
                     url: true
                 }
             },
-            
-            products: {
-                select: {
-                    id: true,
-                    name: true,
-                    description: true,
-                    showStockDetail: true,
-                    price: true,
-                    stock: true,
 
-                    img: {
+            items: {
+                select: {
+                    product: {
                         select: {
-                            url: true
-                        }
-                    },
-                    label: {
-                        select: {
-                            body: true,
-                            color: true
-                        }
-                    },
-                    langMaps: {
-                        select: {
+                            id: true,
                             name: true,
                             description: true,
-                            langId: true
+                            price: true,
+                            stock: true,
+                            isStockAccurate: true,
+                            img: {
+                                select: {
+                                    url: true
+                                }
+                            },
+                            langMaps: {
+                                select: {
+                                    name: true,
+                                    description: true,
+                                    langId: true
+                                }
+                            }
                         }
                     }
-                }
-            },
-            langMaps: {
-                select: {
-                    name: true,
-                    langId: true
                 }
             }
         }

@@ -39,9 +39,51 @@ type Model_CartItem = Prisma.CartItemGetPayload<{
 }>
 
 
+type Model_StoreGroup = Prisma.StoreGetPayload<{
+    select: {
+        id: true,
+        name: true,
+        langMaps: {
+            select: {
+                name: true,
+                langId: true
+            }
+        },
+        cartItems: {
+            select: {
+                id: true,
+                count: true,
+                product: {
+                    select: {
+                        id: true,
+                        name: true,
+                        description: true,
+                        price: true,
+                        stock: true,
+                        isStockAccurate: true,
+                        img: {
+                            select: {
+                                url: true
+                            }
+                        },
+                        langMaps: {
+                            select: {
+                                name: true,
+                                description: true,
+                                langId: true
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}>
+
 
 
 export type models = {
     update: Model_CartItemUpdate,
-    model: Model_CartItem
+    model: Model_CartItem,
+    storeGroup: Model_StoreGroup
 }

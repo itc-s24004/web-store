@@ -129,6 +129,127 @@ export async function cancel(email: string, id: string) {
 
 
 
+export const storeGroup = {
+    get(email: string, filter: Order_Filter): Promise<models["storeGroup"][]> {
+        return db.store.findMany({
+            where: {
+                orders: {
+                    some: {
+                        user: {
+                            email
+                        },
+                        ...filter
+                    }
+                }
+            },
+            select: {
+                id: true,
+                name: true,
+                langMaps: {
+                    select: {
+                        name: true,
+                        langId: true
+                    }
+                },
+                orders: {
+                    select: {
+                        id: true,
+                        index: true,
+                        isCanceled: true,
+                        isReceived: true,
+                        isReady: true,
+                        requestedAt: true,
+                        cartItems: {
+                            select: {
+                                id: true,
+                                count: true,
+                                product: {
+                                    select: {
+                                        id: true,
+                                        name: true,
+                                        price: true,
+                                        stock: true,
+                                        img: {
+                                            select: {
+                                                url: true
+                                            }
+                                        },
+                                        langMaps: {
+                                            select: {
+                                                name: true,
+                                                langId: true
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        _count: {
+                            select: {
+                                cartItems: true
+                            }
+                        }
+                    }
+                }
+            }
+        })
+    }
+}
+
+
+
+export const model = {
+    get(email: string, filter: Order_Filter): Promise<models["model"][]> {
+        return db.order.findMany({
+            where: {
+                user: {
+                    email
+                },
+                ...filter
+            },
+            select: {
+                id: true,
+                index: true,
+                isCanceled: true,
+                isReceived: true,
+                isReady: true,
+                requestedAt: true,
+                cartItems: {
+                    select: {
+                        id: true,
+                        count: true,
+                        product: {
+                            select: {
+                                id: true,
+                                name: true,
+                                price: true,
+                                stock: true,
+                                img: {
+                                    select: {
+                                        url: true
+                                    }
+                                },
+                                langMaps: {
+                                    select: {
+                                        name: true,
+                                        langId: true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                _count: {
+                    select: {
+                        cartItems: true
+                    }
+                }
+            }
+        })
+    }
+}
+
+
 export async function getAll(email: string, storeId: string, filter: Order_Filter): Promise<models["model"][]> {
     return db.order.findMany({
         where: {
